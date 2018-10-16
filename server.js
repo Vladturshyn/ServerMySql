@@ -1,26 +1,22 @@
 const express = require('express');
-const mysql = require('mysql');
-const bodyParser = require('body-parser');
 const app = express();
-var connection  = require('express-myconnection');
+const bodyParser = require('body-parser');
+app.use(bodyParser.json())
 
-app.use(connection(mysql,{
-         host:'eu-cdbr-west-02.cleardb.net',
-         user:'b0ed182fd67118',
-         password:'ac84ac6f',
-         port:3306,
-         database:'heroku_46730d7d959b023'
-     },'single')
-);
+const db = require('./config/db.config.js');
+  
+// force: true will drop the table if it already exists
+db.sequelize.sync({force: true}).then(() => {
+  console.log('Drop and Resync with { force: true }');
+});
 
-const usersRoute = require('./routes/user');
-
-// Body parser middleware
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(bodyParser.json());
-
-app.use('/', usersRoute);
-
-const port = process.env.PORT || 4000;
-
-app.listen(port, console.log(`Server running on port ${port}`));
+require('./route/company.route.js')(app);
+ 
+// Create a Server
+const server = app.listen(8081, function () {
+ 
+    const host = server.address().address
+    const port = server.address().port
+ 
+  console.log("App listening at http://%s:%s", host, port)
+});
